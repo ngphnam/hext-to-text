@@ -246,6 +246,7 @@
           <div class="actions">
             <button id="hexToTextBtn">Convert to Text</button>
             <button id="copyHexBtn" class="secondary">Copy Hex</button>
+            <button id="pasteHexBtn" class="secondary">Paste</button>
           </div>
           <div class="hint">
             Khoảng trắng sẽ tự xoá. Có thể dán có/không khoảng trắng.
@@ -289,6 +290,7 @@
       const textToHexBtn = document.getElementById("textToHexBtn");
       const copyHexBtn = document.getElementById("copyHexBtn");
       const copyTextBtn = document.getElementById("copyTextBtn");
+      const pasteHexBtn = document.getElementById("pasteHexBtn");
       const clearBtn = document.getElementById("clearBtn");
       const appView = document.getElementById("appView");
       const adminView = document.getElementById("adminView");
@@ -313,6 +315,11 @@
       const setAdminStatus = (message, type = "") => {
         adminStatusEl.textContent = message;
         adminStatusEl.className = `status${type ? " " + type : ""}`;
+      };
+
+      const clearCurrentResult = () => {
+        textOutput.value = "";
+        setStatus("Sẵn sàng.");
       };
 
       const normalizeHex = (input) =>
@@ -456,6 +463,10 @@
         }
       });
 
+      hexInput.addEventListener("paste", () => {
+        clearCurrentResult();
+      });
+
       hexToTextBtn.addEventListener("click", () => {
         try {
           const raw = hexInput.value;
@@ -495,6 +506,21 @@
 
       copyHexBtn.addEventListener("click", () => {
         copyToClipboard(hexInput.value, "Hex");
+      });
+
+      pasteHexBtn.addEventListener("click", async () => {
+        try {
+          const text = await navigator.clipboard.readText();
+          if (!text) {
+            setStatus("Clipboard trống.", "error");
+            return;
+          }
+          hexInput.value = text;
+          hexInput.dispatchEvent(new Event("input"));
+          clearCurrentResult();
+        } catch (err) {
+          setStatus("Không thể dán từ clipboard.", "error");
+        }
       });
 
       copyTextBtn.addEventListener("click", () => {
@@ -573,8 +599,6 @@
           showApp();
         }
       });
-
-      // Lịch sử chỉ lưu trong phiên hiện tại (session).
     </script>
   </body>
 </html>
